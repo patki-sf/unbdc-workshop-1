@@ -1,0 +1,139 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Intro to stats: https://docs.google.com/document/d/1_7XSn_qEFHdGaQnfEauRkOkhtvHNS4eP9mj-ATK4GkI/edit
+
+Welcome to R! R is essentially a programming language for statistics - everything is built for data analysis! In this workshop, we'll be going through some of the basics of R. 
+Unfortunately, we won't be able to go through absolutely every facet of R, but if you have any questions, feel free to ask us at the end of the workshop!
+In order to use R, you first need to install the datasets you're using. Here's how you do that:
+```{r}
+# Installing packages
+install.packages("covid19.analytics")
+install.packages("gapminder")
+
+#loading Packages
+library(covid19.analytics)
+library(gapminder)
+
+# final initialization
+data("gapminder") #this may not be necesscary, depending on your data, but check the docs for your dataset!
+```
+
+```{r}
+# Summary gives you a breif overview of the data
+summary(gapminder)
+```
+
+```{r}
+#the syntax may depend on the particular library you're using
+report.summary()
+```
+
+```{r}
+#use the $ to select a specific value from your data
+# your data may have a different structure though - make sure you read the documentation!
+mean(gapminder$lifeExp)
+```
+
+```{r}
+# use <- to assign particular data to variables
+
+x <- mean(gapminder$lifeExp)
+all.data <- covid19.data('ts-ALL')
+```
+```{r}
+#if you're feeling efficient, you can use attach to make one dataset your default
+attach(gapminder)
+
+median(pop)
+#now we don't need to keep calling gapminder!
+```
+```{r}
+#r has a few built in functions
+hist(lifeExp) #makes a histogram
+boxplot(lifeExp) #boxplot
+```
+```{r}
+#you can also do log plots if your data are skewed
+
+hist(pop)
+
+#versus
+
+hist(log(pop))
+```
+```{r}
+#use the ~ to create dependent and independent variables
+boxplot(lifeExp ~ continent) #continent is the independent vairable
+```
+```{r}
+# you can also create scatterplots
+plot(lifeExp ~ log(gdpPercap)) #gdp is independent here
+```
+These are just the basic functions of R - in order to take full advantage of it, we have to install a few new libraries
+Two good ones are dyplr and ggplot, but your dataset may come with built in features such as visualization, so be sure to check for them!
+For example...
+```{r}
+TS.data <- covid19.data("ts-ALL")
+
+totals.plt(TS.data)
+```
+Here's how to use dplyr
+```{r}
+# Installing
+install.packages("dplyr")
+library(dplyr)
+```
+```{r}
+gapminder %>% # the weird percent thingy is called the pipe operator - it basically operates as 'and then'
+  select(country, lifeExp) %>% #selecting the country and its life expectency 
+  filter(country == "Canada" | country == "South Africa") %>% # the | character works like 'or'
+  group_by(country) %>%
+  summarise(Average_life = mean(lifeExp)) #this creates our table - the 'dependent' column is assigned to that country's average life expectency
+```
+Data tables are nice, but you also need to do statistical analysis on your data. Here's how to do a T-test for a difference of means with your data.
+So, there's a substantial difference between the life expectancy of Canadians and South Africans. Is this just chance, or is there something more here?
+
+```{r}
+data_frame_1 <- gapminder %>% 
+  select(country, lifeExp) %>% 
+  filter(country == "Canada" | country == "South Africa")
+# Taking our data from before and assigning it to our dataframe
+```
+```{r}
+t.test(data = data_frame_1, lifeExp ~ country) #we take our previous dataframe and tell the computer to do a t-test comparing the life expectancies of Canada and South Africa
+```
+So, based on the P-value we got, we can say that this is statistically significant. This function also gives you a handy confidence interval of what the difference could be!
+
+If you want to create plots, ggplot is the way to do it! Here's how its used.
+```{r}
+#installing it
+install.packages("ggplot2")
+library(ggplot2)
+```
+```{r}
+#now let's use it!
+gapminder  %>%
+  filter(gdpPercap < 50000) %>% #here, we take our gapminder data and filter it by countries with a GDP per capita of less than 50000
+  ggplot(aes(x=log(gdpPercap), y=lifeExp, col=continent, size=pop))+geom_point()
+#There's a lot to unpack here - first, we tell it to put Gdp on the x axis and life expectancy on the y axis, and then colour by continent, and finally make the bubbles proportional to population!
+
+```
+There's a lot more you can do with ggplot, but I highly encourage you to explore on your own! There's a lot of potential for great visualizations.
+Another useful model is a linear regression, which can be used to essentially create trendlines. Here's how we do that.
+```{r}
+lm(lifeExp ~ gdpPercap) #This model asks how much GDP impacts life expectancy
+```
+Cool! That shows that there is a correlation between the two in our data. Here's some more advanced linear modelling!
+```{r}
+summary(lm(lifeExp ~ gdpPercap))
+#this gives more in depth stats, such as p-values and residuals
+```
+```{r}
+lm(lifeExp ~ gdpPercap+pop)
+#we can even do some multivariable models!
+```
+
+I hope this is enough to get you started on your journey in R! If you have any questions, please ask us! After all, we're here to help!
